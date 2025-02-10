@@ -8,20 +8,10 @@ import passport from "passport";
 
 dotenv.config();
 
-const signToken = (
-  id: string,
-  email: string,
-  role: string,
-  firstName: string,
-  lastName: string
-) => {
-  return jwt.sign(
-    { id, email, role, firstName, lastName },
-    process.env.JWT_SECRET!,
-    {
-      expiresIn: "90d",
-    }
-  );
+const signToken = (id: string, email: string) => {
+  return jwt.sign({ id, email }, process.env.JWT_SECRET!, {
+    expiresIn: "90d",
+  });
 };
 
 const createSendToken = (
@@ -30,13 +20,7 @@ const createSendToken = (
   res: Response,
   req: Request
 ) => {
-  const token = signToken(
-    user.id,
-    user.email,
-    user.role,
-    user.firstName,
-    user.lastName
-  );
+  const token = signToken(user.id, user.email);
 
   res.cookie("jwt", token, {
     expires: new Date(
@@ -65,9 +49,6 @@ export const signUp = catchAsync(
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
-      role: req.body.role,
-      password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
     });
 
     createSendToken(newUser, 201, res, req);
@@ -129,21 +110,12 @@ export const googleAuthCallback = (
 
       if (!existingUser) {
         existingUser = await User.create({
-          firstName: user.firstName,
-          lastName: user.lastName,
           email: user.email,
-          role: "user", // Default role
         });
       }
 
       // Generate token
-      const token = signToken(
-        existingUser.id,
-        existingUser.email,
-        existingUser.role,
-        existingUser.firstName,
-        existingUser.lastName
-      );
+      const token = signToken(existingUser.id, existingUser.email);
 
       res.cookie("jwt", token, {
         httpOnly: true,
@@ -151,7 +123,7 @@ export const googleAuthCallback = (
         secure: process.env.NODE_ENV === "production",
       });
 
-      res.redirect(`http://localhost:5173/?token=${token}`);
+      res.redirect(`${process.env.FRONT_BASE_URL}/?token=${token}`);
     }
   )(req, res, next);
 };

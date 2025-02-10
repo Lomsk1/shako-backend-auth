@@ -7,9 +7,6 @@ import { catchAsync } from "../utils/catchAsync";
 interface UserPayload {
   id: string;
   email: string;
-  role: string;
-  firstName: string;
-  lastName: string;
   iat: number;
   exp: number;
 }
@@ -17,7 +14,7 @@ interface UserPayload {
 declare global {
   namespace Express {
     interface Request {
-      user: UserPayload;
+      user?: UserPayload;
     }
   }
 }
